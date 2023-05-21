@@ -1,0 +1,129 @@
+
+
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity >=0.7.0 <0.9.0;
+
+contract AirTicketBooking {
+    struct enoms {
+        string name;
+        string country;
+        string gender;
+        address  owner;
+    }
+
+    address admin;
+
+    constructor() {
+        admin = msg.sender;
+    }
+
+    modifier onlyAdmin {
+        require(admin == msg.sender, "Only the admin can perform this action.");
+        _;
+    }
+
+    mapping(uint => enoms) public Ticket;
+    uint public book;
+
+    function BuyAirPlanTicket(address payable getter, uint price,string memory _name, string memory _country, string memory _gender) public payable onlyAdmin {
+    require(bytes(_name).length > 0, "Name cannot be empty.");
+    require(bytes(_country).length > 0, "Country cannot be empty.");
+    require(bytes(_gender).length > 0, "Gender cannot be empty.");
+    require(price > 10 wei, "Ticket price must be greater than 1000 wei.");
+    require(msg.value >= price, "Insufficient funds.");
+
+    getter.transfer(price);
+    contractBalance -= price;
+    Ticket[book] = enoms(_name, _country, _gender, msg.sender);
+    book++;
+
+    // refund any excess payment back to the buyer
+    // if (msg.value > price) {
+    //     msg.sender.transfer(msg.value - price);
+    // }
+}
+
+function refundPayment(uint ticketNumber) public payable  onlyAdmin {
+    require(ticketNumber < book, "Invalid ticket number.");
+
+    // get the ticket information
+    enoms memory ticket = Ticket[ticketNumber];
+
+    // refund the ticket price back to the buyer
+    payable(ticket.owner).transfer(10 wei);
+
+    // reduce the contract balance
+    contractBalance += 10 wei;
+
+    // remove the ticket from the mapping
+    delete Ticket[ticketNumber];
+}
+
+
+  
+    uint public contractBalance;
+
+    function pay() public payable onlyAdmin {
+        require(msg.value > 0, "Payment amount must be greater than zero.");
+
+        contractBalance += msg.value;
+    }
+
+    function checkBalance() public view returns (uint256) {
+        require(book > 0, "No tickets have been booked yet.");
+         
+
+        return address(this).balance;
+    }
+
+
+    function getTicketCount() public view returns (uint) {
+            require(book > 0, "No tickets have been booked yet.");
+        return book;
+    
+           
+
+    }
+
+
+function GetInformationDelete(uint del)public{
+
+   require(del < book, "Invalid ticket index.");
+//   require(Ticket[del].owner != address(0), "Ticket does not exist.");
+    require(book > 0, "No tickets have been booked yet.");
+    delete Ticket [del];
+    book --;
+}
+}
+
+
+
+
+
+
+
+
+
+// const cmartContract = new web3.eth.Contract(cmartAbi, cmartAddress);
+
+// // Send 1 ETH to the contract
+// cmartContract.methods.pay().send({
+//   from: myAddress,
+//   value: web3.utils.toWei('1', 'ether')
+// });
+
+
+//use recive function
+
+// const contract = new ethers.Contract(contractAddress, contractAbi, provider);
+
+// // Send 1 ETH to the contract's receive function
+// const tx = {
+//   to: contractAddress,
+//   value: ethers.utils.parseEther('1')
+// };
+
+// const response = await signer.sendTransaction(tx);
+
+// console.log('Transaction hash:', response.hash);
